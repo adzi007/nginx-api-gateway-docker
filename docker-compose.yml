@@ -3,16 +3,24 @@ services:
   nginx:
     build:
       context: .
+    container_name: ecommerce-api-gateway
+    networks:
+      - ecommerce-network
     ports:
       - "8080:80" # Maps container port 80 to host port 8080
     volumes:
       - ./html:/usr/share/nginx/html # Bind mount for live edits
-    environment:
-      - MICROSERVICE_CART_HOST=${MICROSERVICE_CART_HOST}
-      - MICROSERVICE_CART_PORT=${MICROSERVICE_CART_PORT}
+      # - ./nginx.conf:/etc/nginx/nginx.conf:ro # Your custom Nginx configuration
+    # environment:
+    #   - MICROSERVICE_CART_HOST=${MICROSERVICE_CART_HOST}
+    #   - MICROSERVICE_CART_PORT=${MICROSERVICE_CART_PORT}
       # - MICROSERVICE_USERS_HOST=${MICROSERVICE_USERS_HOST}
       # - MICROSERVICE_USERS_PORT=${MICROSERVICE_USERS_PORT}
       # - MICROSERVICE_PRODUCTS_HOST=${MICROSERVICE_PRODUCTS_HOST}
       # - MICROSERVICE_PRODUCTS_PORT=${MICROSERVICE_PRODUCTS_PORT}
     env_file:
       - .env
+
+networks:
+  ecommerce-network:
+    external: true # Connect to the shared network
