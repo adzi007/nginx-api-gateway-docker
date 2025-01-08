@@ -1,8 +1,11 @@
 const jwt = require('jsonwebtoken');
 const jwksRsa = require('jwks-rsa');
 
+// console.log("url keycloak cert >>>>>>>>>>>>>> ", `${process.env.KEYCLOAK_URL}/realms/${process.env.REALM}/protocol/openid-connect/certs`);
+
+
 const client = jwksRsa({
-  jwksUri: `${process.env.KEYCLOAK_URL}/realms/${process.env.REALM}/protocol/openid-connect/certs`,
+  jwksUri: `http://${process.env.KEYCLOAK_URL}/realms/${process.env.REALM}/protocol/openid-connect/certs`,
   cache: true,
   cacheMaxEntries: 5,
   cacheMaxAge: 3600000, // 1 hour
@@ -25,7 +28,7 @@ const validateJWT = (token) =>
       getKey,
       {
         algorithms: ['RS256'],
-        issuer: `${process.env.KEYCLOAK_URL}/realms/${process.env.REALM}`,
+        issuer: `http://${process.env.KEYCLOAK_URL}/realms/${process.env.REALM}`,
       },
       (err, decoded) => {
         if (err) {
