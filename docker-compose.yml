@@ -10,16 +10,20 @@ services:
       - "8080:80" # Maps container port 80 to host port 8080
     volumes:
       - ./html:/usr/share/nginx/html # Bind mount for live edits
-      # - ./nginx.conf:/etc/nginx/nginx.conf:ro # Your custom Nginx configuration
-    # environment:
-    #   - MICROSERVICE_CART_HOST=${MICROSERVICE_CART_HOST}
-    #   - MICROSERVICE_CART_PORT=${MICROSERVICE_CART_PORT}
-      # - MICROSERVICE_USERS_HOST=${MICROSERVICE_USERS_HOST}
-      # - MICROSERVICE_USERS_PORT=${MICROSERVICE_USERS_PORT}
-      # - MICROSERVICE_PRODUCTS_HOST=${MICROSERVICE_PRODUCTS_HOST}
-      # - MICROSERVICE_PRODUCTS_PORT=${MICROSERVICE_PRODUCTS_PORT}
     env_file:
       - .env
+  
+  node-jwt-validator-service:
+    build:
+      context: ./node-jwt-validator-service
+    container_name: node-jwt-validator-service
+    networks:
+      - ecommerce-network
+    ports:
+      - "3000:3000"
+    environment:
+      - KEYCLOAK_URL=${MICROSERVICE_AUTH_HOST}:${MICROSERVICE_AUTH_PORT}
+      - REALM=${MICROSERVICE_AUTH_REALM}
 
 networks:
   ecommerce-network:
