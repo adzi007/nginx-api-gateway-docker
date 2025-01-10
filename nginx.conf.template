@@ -27,6 +27,9 @@ http {
 
             # Apply authentication for requests from public networks
             auth_request /validate-token;
+
+            # Extract the X-User-Roles header from the /validate-token response
+            auth_request_set $user_roles $upstream_http_x_user_roles;
             
             # Handle authentication failure
             error_page 401 = @auth_fail;
@@ -39,6 +42,12 @@ http {
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            # Pass user roles as a custom header
+            proxy_set_header X-User-Roles $user_roles;
+
+            # Set a custom header to indicate the source of the request
+            proxy_set_header X-Request-Source "public";
 
             # Optional timeout settings
             proxy_connect_timeout 15s;
@@ -55,6 +64,82 @@ http {
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            # Set a custom header to indicate the source of the request
+            proxy_set_header X-Request-Source "internal";
+
+            # Optional timeout settings
+            proxy_connect_timeout 15s;
+            proxy_read_timeout 15s;
+        }
+
+        # location /products {
+        location ~ ^/products/(.*) {
+
+            # Capture the full path after /products/
+            set $dynamic_path $1;
+
+            # Apply authentication for requests from public networks
+            auth_request /validate-token;
+
+            # Extract the X-User-Roles header from the /validate-token response
+            auth_request_set $user_roles $upstream_http_x_user_roles;
+            
+            # Handle authentication failure
+            error_page 401 = @auth_fail;
+
+            proxy_pass http://${MICROSERVICE_PRODUCTS_HOST}:${MICROSERVICE_PRODUCTS_PORT}/$dynamic_path;
+            
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            # Pass user roles as a custom header
+            proxy_set_header X-User-Roles $user_roles;
+
+            # Set a custom header to indicate the source of the request
+            proxy_set_header X-Request-Source "public";
+
+            # Optional timeout settings
+            proxy_connect_timeout 15s;
+            proxy_read_timeout 15s;
+        }
+
+        # location /products/category {
+
+        #     proxy_pass http://${MICROSERVICE_PRODUCTS_HOST}:${MICROSERVICE_PRODUCTS_PORT}/category;
+            
+        #     proxy_http_version 1.1;
+        #     proxy_set_header Upgrade $http_upgrade;
+        #     proxy_set_header Connection "upgrade";
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        #     # Set a custom header to indicate the source of the request
+        #     # proxy_set_header X-Request-Source "internal";
+
+        #     # Optional timeout settings
+        #     proxy_connect_timeout 15s;
+        #     proxy_read_timeout 15s;
+        # }
+
+        location /internal/products {
+
+            proxy_pass http://${MICROSERVICE_PRODUCTS_HOST}:${MICROSERVICE_PRODUCTS_PORT}/;
+            
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            # Set a custom header to indicate the source of the request
+            proxy_set_header X-Request-Source "internal";
 
             # Optional timeout settings
             proxy_connect_timeout 15s;
