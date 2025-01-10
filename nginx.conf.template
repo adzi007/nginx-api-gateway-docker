@@ -73,11 +73,14 @@ http {
             proxy_read_timeout 15s;
         }
 
-        # location /products {
-        location ~ ^/products/(.*) {
+        location /products/ {
+        # location ~ ^/products/(.*) {
 
             # Capture the full path after /products/
-            set $dynamic_path $1;
+            # set $dynamic_path $1;
+
+            # Modify or append a query parameter
+            # rewrite ^/products/(.*)$ /$1?new_param=value last;
 
             # Apply authentication for requests from public networks
             auth_request /validate-token;
@@ -88,7 +91,8 @@ http {
             # Handle authentication failure
             error_page 401 = @auth_fail;
 
-            proxy_pass http://${MICROSERVICE_PRODUCTS_HOST}:${MICROSERVICE_PRODUCTS_PORT}/$dynamic_path;
+            # proxy_pass http://${MICROSERVICE_PRODUCTS_HOST}:${MICROSERVICE_PRODUCTS_PORT}/$dynamic_path;
+            proxy_pass http://${MICROSERVICE_PRODUCTS_HOST}:${MICROSERVICE_PRODUCTS_PORT}/;
             
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -182,6 +186,7 @@ http {
             proxy_pass http://node-jwt-validator-service:3000/validate;
             proxy_pass_request_body off;
 			proxy_set_header Content-Length "";
+            proxy_set_header X-Original-Method $request_method;
 			proxy_set_header X-Original-URI $request_uri;
 
         }
