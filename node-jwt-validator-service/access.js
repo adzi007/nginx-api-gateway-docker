@@ -1,56 +1,61 @@
 
-export const endpointsConfig = {
+const productServiceEnpoints = {
+    serviceName: "products",
+    basePath: "/products",
     endpoints: [
       {
         path: "/products",
         methods: {
-          GET: {
-            roles: [], // Empty array means no roles required, open to all authenticated users
-          },
-          POST: {
-            roles: ["admin", "manager"], // Roles allowed to create products
-          },
+          GET: { roles: null },
+          POST: { roles: ["admin"] },
         },
       },
       {
         path: "/products/:id",
         methods: {
-          GET: {
-            roles: [], // No roles required, open to all authenticated users
-          },
-          PUT: {
-            roles: ["admin", "manager"], // Roles allowed to update product details
-          },
-          DELETE: {
-            roles: ["admin"], // Only admins can delete products
-          },
+          GET: { roles: null },
+          PUT: { roles: ["admin"] },
+          DELETE: { roles: ["admin"] },
         },
       },
       {
         path: "/category",
         methods: {
-          GET: {
-            roles: null, // Null or undefined means no authentication required
-          },
-          POST: {
-            roles: ["admin", "manager"], // Roles allowed to create a category
-          },
+          GET: { roles: null },
+          POST: { roles: ["admin"] },
         },
       },
       {
         path: "/category/:id",
         methods: {
-          GET: {
-            roles: null, // Null or undefined means no authentication required
-          },
-          PUT: {
-            roles: ["admin", "manager"], // Roles allowed to update a category
-          },
-          DELETE: {
-            roles: ["admin"], // Only admins can delete categories
-          },
+          GET: { roles: null },
+          PUT: { roles: ["admin"] },
+          DELETE: { roles: ["admin"] },
         },
       },
     ],
-  };
+};
+
+const cartServiceEndpoints = {
+  serviceName: "cart",
+  basePath: "/cart",
+  endpoints: [
+    {
+      path: "/",
+      methods: {
+        GET: { roles: ['end_user_customer'] },
+        POST: { roles: ["end_user_customer"] },
+        PUT: { roles: ["end_user_customer" ] },
+        DELETE: { roles: ["end_user_customer"] },
+      },
+    },
+  ],
+}
+
+const servicesAccess = [ 
+  productServiceEnpoints,
+  cartServiceEndpoints
+]
+
+module.exports = { servicesAccess };
   
