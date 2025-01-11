@@ -13,10 +13,7 @@ app.get('/validate', async (req, res) => {
   const originalMethod = req.headers['x-original-method'];
 
   const matchingEndpoint = findMatchingEndpoint(originalUri, originalMethod);
-
-  console.log("matchingEndpoint >>> ", matchingEndpoint);
   
-
   if (matchingEndpoint) {
 
 
@@ -30,15 +27,14 @@ app.get('/validate', async (req, res) => {
         return res.status(400).json({ error: 'Authorization header with Bearer token is required' });
       }
 
-      const token = authHeader.split(' ')[1]; // Extract the token after 'Bearer'
+      const token = authHeader.split(' ')[1];
 
       try {
 
         const decoded = await validateJWT(token);
+
         // Add roles as a custom header
-
         const roles = decoded.resource_access?.['customer-service']?.roles?.join(',') || '';
-
         res.set('X-User-Roles', roles);
     
         res.status(200).json({ valid: true });

@@ -5,23 +5,33 @@ events {
 http {
 
     # Map to determine if a request requires authentication
-    map $remote_addr $require_auth {
+    # map $remote_addr $require_auth {
         
-        # Internal network (no authentication required)
-        ~^192\.168\.192\..* 0;
+    #     # Internal network (no authentication required)
+    #     ~^192\.168\.192\..* 0;
 
-        # All other networks (authentication required)
-        default 1;
-    }
+    #     # All other networks (authentication required)
+    #     default 1;
+    # }
+
+    # upstream cart_service {
+    #     server ${MICROSERVICE_CART_HOST}:${MICROSERVICE_CART_PORT} max_fails=3 fail_timeout=30s;
+    #     server 127.0.0.1:12345 backup;
+    # }
     
     server {
         listen 80;
+
+        # proxy_intercept_errors on;
+        # error_page 502 503 504 = @fallback;
 
         # Serve static files from the html directory
         location / {
             root /usr/share/nginx/html;
             index index.html;
         }
+
+        
 
         location /cart {
 
@@ -35,6 +45,12 @@ http {
             error_page 401 = @auth_fail;
 
             proxy_pass http://${MICROSERVICE_CART_HOST}:${MICROSERVICE_CART_PORT}/;
+            # proxy_pass http://cart_service;
+
+            # Handle upstream errors
+            # proxy_next_upstream error timeout invalid_header http_502 http_503 http_504;
+            proxy_intercept_errors on;
+            error_page 500 501 502 503 504 = @fallback;
             
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
@@ -51,11 +67,11 @@ http {
 
             # Optional timeout settings
             proxy_connect_timeout 15s;
-            proxy_read_timeout 15s;
+            proxy_read_timeout 15s;            
         }
 
         # Internal network route bypassing authentication
-        location /internal/cart {
+        location /internal/cart/ {
 
             proxy_pass http://${MICROSERVICE_CART_HOST}:${MICROSERVICE_CART_PORT}/;
             proxy_http_version 1.1;
@@ -74,14 +90,7 @@ http {
         }
 
         location /products/ {
-        # location ~ ^/products/(.*) {
-
-            # Capture the full path after /products/
-            # set $dynamic_path $1;
-
-            # Modify or append a query parameter
-            # rewrite ^/products/(.*)$ /$1?new_param=value last;
-
+        
             # Apply authentication for requests from public networks
             auth_request /validate-token;
 
@@ -112,26 +121,9 @@ http {
             proxy_read_timeout 15s;
         }
 
-        # location /products/category {
 
-        #     proxy_pass http://${MICROSERVICE_PRODUCTS_HOST}:${MICROSERVICE_PRODUCTS_PORT}/category;
-            
-        #     proxy_http_version 1.1;
-        #     proxy_set_header Upgrade $http_upgrade;
-        #     proxy_set_header Connection "upgrade";
-        #     proxy_set_header Host $host;
-        #     proxy_set_header X-Real-IP $remote_addr;
-        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
-        #     # Set a custom header to indicate the source of the request
-        #     # proxy_set_header X-Request-Source "internal";
-
-        #     # Optional timeout settings
-        #     proxy_connect_timeout 15s;
-        #     proxy_read_timeout 15s;
-        # }
-
-        location /internal/products {
+        location /internal/products/ {
 
             proxy_pass http://${MICROSERVICE_PRODUCTS_HOST}:${MICROSERVICE_PRODUCTS_PORT}/;
             
@@ -195,6 +187,11 @@ http {
         location @auth_fail {
             return 401 'Unauthorized';
             add_header Content-Type text/plain;
+        }
+
+        location @fallback {
+            add_header X-Debug-Status $status;
+            return 502 'Service temporarily unavailable. Please try again later.';
         }
 
 

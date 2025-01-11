@@ -12,6 +12,8 @@ services:
       - ./html:/usr/share/nginx/html # Bind mount for live edits
     env_file:
       - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Map host.docker.internal to the host's gateway
   
   node-jwt-validator-service:
     build:
